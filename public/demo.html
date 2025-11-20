@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meme Coin Aggregator - Demo</title>
+    <script src="https://cdn.socket.io/4.6.0/socket.io.min.js"></script>
+    <style>
+        :root {
+            --primary-dark-blue: #1e3a8a;
+            --primary-blue: #2563eb;
+            --secondary-white: #ffffff;
+            --light-gray: #f8fafc;
+            --border-gray: #e2e8f0;
+            --text-dark: #1e293b;
+            --text-light: #64748b;
+            --success-green: #10b981;
+            --danger-red: #ef4444;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+            background: var(--light-gray);
+            color: var(--text-dark);
+            padding: 20px;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: var(--secondary-white);
+            border-radius: 8px;
+            padding: 32px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            color: var(--primary-dark-blue);
+            margin-bottom: 24px;
+            font-size: 28px;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+        }
+        
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+            padding: 12px 16px;
+            background: var(--light-gray);
+            border-radius: 6px;
+            border: 1px solid var(--border-gray);
+        }
+        
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--danger-red);
+            animation: pulse 2s infinite;
+        }
+        
+        .status-dot.connected {
+            background: var(--success-green);
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .controls {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+        
+        select, button {
+            padding: 10px 16px;
+            border: 1px solid var(--border-gray);
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: var(--secondary-white);
+            color: var(--text-dark);
+        }
+        
+        select:hover {
+            border-color: var(--primary-blue);
+        }
+        
+        select:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+        
+        button {
+            background: var(--primary-dark-blue);
+            color: var(--secondary-white);
+            border: none;
+            font-weight: 500;
+        }
+        
+        button:hover {
+            background: var(--primary-blue);
+        }
+        
+        button:active {
+            transform: scale(0.98);
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        
+        .stat-card {
+            background: var(--primary-dark-blue);
+            color: var(--secondary-white);
+            padding: 20px;
+            border-radius: 6px;
+            border: 1px solid var(--primary-blue);
+        }
+        
+        .stat-label {
+            font-size: 13px;
+            opacity: 0.85;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 500;
+        }
+        
+        .stat-value {
+            font-size: 26px;
+            font-weight: 600;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 0;
+        }
+        
+        th, td {
+            padding: 14px 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-gray);
+            font-size: 14px;
+        }
+        
+        th {
+            background: var(--primary-dark-blue);
+            color: var(--secondary-white);
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            text-transform: uppercase;
+            font-size: 12px;
+            letter-spacing: 0.5px;
+        }
+        
+        tbody tr {
+            transition: background-color 0.15s ease;
+        }
+        
+        tbody tr:hover {
+            background: var(--light-gray);
+        }
+        
+        .positive {
+            color: var(--success-green);
+            font-weight: 600;
+        }
+        
+        .negative {
+            color: var(--danger-red);
+            font-weight: 600;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-light);
+        }
+        
+        .highlight {
+            animation: highlight 1s ease;
+        }
+        
+        @keyframes highlight {
+            0%, 100% { background: transparent; }
+            50% { background: rgba(37, 99, 235, 0.1); }
+        }
+        
+        .table-container {
+            max-height: 600px;
+            overflow-y: auto;
+            border: 1px solid var(--border-gray);
+            border-radius: 6px;
+        }
+        
+        .table-container::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .table-container::-webkit-scrollbar-track {
+            background: var(--light-gray);
+        }
+        
+        .table-container::-webkit-scrollbar-thumb {
+            background: var(--border-gray);
+            border-radius: 4px;
+        }
+        
+        .table-container::-webkit-scrollbar-thumb:hover {
+            background: var(--text-light);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Meme Coin Aggregator</h1>
+        
+        <div class="status">
+            <div class="status-dot" id="statusDot"></div>
+            <span id="statusText">Connecting to server...</span>
+        </div>
+
+        <div class="controls">
+            <select id="sortBy">
+                <option value="volume">Sort by Volume</option>
+                <option value="price_change">Sort by Price Change</option>
+                <option value="market_cap">Sort by Market Cap</option>
+                <option value="liquidity">Sort by Liquidity</option>
+            </select>
+            <select id="sortOrder">
+                <option value="desc">Descending</option>
+                <option value="asc">Ascending</option>
+            </select>
+            <select id="limit">
+                <option value="10">10 tokens</option>
+                <option value="20" selected>20 tokens</option>
+                <option value="30">30 tokens</option>
+                <option value="50">50 tokens</option>
+            </select>
+            <button onclick="applyFilter()">Apply Filter</button>
+            <button onclick="refreshData()">Refresh Data</button>
+        </div>
+
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-label">Total Tokens</div>
+                <div class="stat-value" id="totalTokens">-</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Last Update</div>
+                <div class="stat-value" id="lastUpdate">-</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Updates Received</div>
+                <div class="stat-value" id="updateCount">0</div>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Token</th>
+                        <th>Ticker</th>
+                        <th>Price (SOL)</th>
+                        <th>1h Change</th>
+                        <th>Volume (SOL)</th>
+                        <th>Liquidity (SOL)</th>
+                        <th>Market Cap (SOL)</th>
+                        <th>Protocol</th>
+                    </tr>
+                </thead>
+                <tbody id="tokenTable">
+                    <tr>
+                        <td colspan="9" class="loading">
+                            Waiting for data...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        let socket;
+        let updateCount = 0;
+        let previousData = {};
+
+        function connect() {
+            const host = window.location.hostname;
+            const port = window.location.port || '3000';
+            socket = io(`http://${host}:${port}`);
+
+            socket.on('connect', () => {
+                console.log('Connected to WebSocket');
+                document.getElementById('statusDot').classList.add('connected');
+                document.getElementById('statusText').textContent = 'Connected to live updates';
+            });
+
+            socket.on('disconnect', () => {
+                console.log('Disconnected from WebSocket');
+                document.getElementById('statusDot').classList.remove('connected');
+                document.getElementById('statusText').textContent = 'Disconnected - Reconnecting...';
+            });
+
+            socket.on('tokens', (data) => {
+                console.log('Received token update:', data);
+                updateCount++;
+                document.getElementById('updateCount').textContent = updateCount;
+                renderTokens(data);
+            });
+
+            socket.on('price_update', (update) => {
+                console.log('Price update:', update);
+            });
+        }
+
+        function renderTokens(response) {
+            const tokens = response.data || [];
+            const tbody = document.getElementById('tokenTable');
+            
+            document.getElementById('totalTokens').textContent = response.total || tokens.length;
+            document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
+
+            if (tokens.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="9" class="loading">No tokens found</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = tokens.map((token, index) => {
+                const isNew = !previousData[token.token_address];
+                const priceChanged = previousData[token.token_address] && 
+                    previousData[token.token_address].price_sol !== token.price_sol;
+                
+                previousData[token.token_address] = token;
+
+                const changeClass = token.price_1hr_change >= 0 ? 'positive' : 'negative';
+                const highlightClass = priceChanged ? 'highlight' : '';
+
+                // Format price based on its size for better readability
+                const formatPrice = (price) => {
+                    if (price >= 1) return price.toFixed(4);
+                    if (price >= 0.0001) return price.toFixed(6);
+                    if (price >= 0.00000001) return price.toFixed(8);
+                    return price.toExponential(2);
+                };
+
+                return `
+                    <tr class="${highlightClass}">
+                        <td>${index + 1}</td>
+                        <td>${token.token_name || 'Unknown'}</td>
+                        <td><strong>${token.token_ticker}</strong></td>
+                        <td>${formatPrice(token.price_sol)}</td>
+                        <td class="${changeClass}">${token.price_1hr_change.toFixed(2)}%</td>
+                        <td>${token.volume_sol.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                        <td>${token.liquidity_sol.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                        <td>${token.market_cap_sol.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                        <td>${token.protocol}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function applyFilter() {
+            const sortBy = document.getElementById('sortBy').value;
+            const sortOrder = document.getElementById('sortOrder').value;
+            const limit = parseInt(document.getElementById('limit').value);
+
+            socket.emit('filter', {
+                sortBy,
+                sortOrder,
+                limit
+            });
+        }
+
+        function refreshData() {
+            fetch('/api/tokens/refresh', { method: 'POST' })
+                .then(res => res.json())
+                .then(data => {
+                    console.log('Cache refreshed:', data);
+                    alert('Cache refreshed successfully!');
+                })
+                .catch(err => {
+                    console.error('Refresh error:', err);
+                    alert('Failed to refresh cache');
+                });
+        }
+
+        // Connect on load
+        connect();
+    </script>
+</body>
+</html>
+
