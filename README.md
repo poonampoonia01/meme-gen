@@ -2,7 +2,12 @@
 
 A real-time meme coin data aggregation service that fetches, merges, and streams token data from multiple DEX sources with efficient caching and WebSocket updates.
 
-## 🚀 Features
+## High Level Architecture (Request Flow)
+
+<img width="1392" height="1352" alt="image" src="https://github.com/user-attachments/assets/bb9a5fc9-183e-490e-b28d-e24876a68e53" />
+
+
+## Features
 
 - **Multi-Source Aggregation**: Fetches data from DexScreener and Jupiter APIs
 - **Real-time Updates**: WebSocket support for live price and volume updates
@@ -12,17 +17,17 @@ A real-time meme coin data aggregation service that fetches, merges, and streams
 - **Cursor Pagination**: Efficient pagination for large token lists
 - **Duplicate Merging**: Intelligent merging of tokens from multiple sources
 
-## 📋 Prerequisites
+## Prerequisites
 
 - Node.js >= 18.x
 - Redis >= 6.x
 - npm or yarn
 
-## 🚀 Quick Start
+## Quick Start
 
 **Want to get started immediately?** Check out [QUICKSTART.md](QUICKSTART.md) for a 5-minute setup guide!
 
-## 🛠️ Installation
+## Installation
 
 1. **Clone the repository**
 ```bash
@@ -63,7 +68,7 @@ sudo systemctl start redis
 docker run -d -p 6379:6379 redis:alpine
 ```
 
-## 🏃 Running the Application
+## Running the Application
 
 ### Development Mode
 ```bash
@@ -78,7 +83,7 @@ npm start
 
 The server will start on `http://localhost:3000`
 
-## 📡 API Endpoints
+## API Endpoints
 
 ### REST API
 
@@ -167,7 +172,7 @@ socket.emit('filter', {
 socket.emit('subscribe', 'TOKEN_ADDRESS_HERE');
 ```
 
-## 🏗️ Architecture
+## Architecture
 
 ### Folder Structure
 ```
@@ -220,7 +225,7 @@ ankit/
    - Room-based subscriptions for specific tokens
    - Initial data load on connection
 
-## 🧪 Testing
+## Testing
 
 Run all tests:
 ```bash
@@ -244,14 +249,14 @@ npm run test:watch
 - **WebSocket**: ~5KB per update, 5-second interval
 - **Memory**: ~100MB base + Redis
 
-## 🚨 Error Handling
+## Error Handling
 
 - Graceful degradation when APIs are unavailable
 - Automatic retry with exponential backoff
 - Redis connection failures don't crash the server
 - Comprehensive error logging with Winston
 
-## 🔒 Security
+## Security
 
 - CORS enabled for all origins (configure for production)
 - Input validation on query parameters
@@ -270,7 +275,7 @@ npm run test:watch
 | WS_UPDATE_INTERVAL | WebSocket update interval (ms) | 5000 |
 | NODE_ENV | Environment | development |
 
-## 🚀 Deployment
+## Deployment
 
 ### Using Docker
 ```dockerfile
@@ -290,7 +295,7 @@ CMD ["npm", "start"]
 3. Set build command: `npm run build`
 4. Set start command: `npm start`
 
-## 📚 Documentation
+## Documentation
 
 - **[QUICKSTART.md](QUICKSTART.md)** - Get started in 5 minutes
 - **[ARCHITECTURE.md](ARCHITECTURE.md)** - Detailed system architecture
@@ -298,17 +303,7 @@ CMD ["npm", "start"]
 - **[TESTING.md](TESTING.md)** - Testing guide and strategies
 - **[postman_collection.json](postman_collection.json)** - API collection for testing
 
-## 📹 Demo Video
-
-[Link to 1-2 minute YouTube video - Coming soon]
-
-**Video Script for Recording:**
-1. Show demo page with live updates (30s)
-2. Make 5-10 rapid API calls via Postman showing response times (30s)
-3. Open multiple browser tabs showing WebSocket updates (20s)
-4. Walk through architecture diagram and design decisions (40s)
-
-## 🔗 API Collection
+## API Collection
 
 Import `postman_collection.json` into Postman or use Newman:
 ```bash
@@ -316,18 +311,12 @@ npm install -g newman
 newman run postman_collection.json
 ```
 
-## 📄 License
+## License
 
 MIT
 
-## 👤 Author
+## Author
 
-[Your Name]
+Poonam Poonia
 
-## 🙏 Acknowledgments
-
-- DexScreener API
-- Jupiter Aggregator
-- Socket.io
-- Redis
 
